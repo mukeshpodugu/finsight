@@ -1,0 +1,21 @@
+server:
+  port: 8080
+
+spring:
+  profiles:
+    active: dev
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
+
+finsight:
+  jwt:
+    secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+    expiration-ms: 86400000 # 24 Hours
+  gemini:
+    model: gemini-1.5-flash
+    api-url: https://generativelanguage.googleapis.com/v1beta/models
+    api-key: ${GEMINI_API_KEY:mock-key}
+  upload:
+    dir: C:/Users/mukes/.gemini/antigravity/scratch/finsight/uploads

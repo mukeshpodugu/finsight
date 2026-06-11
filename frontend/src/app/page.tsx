@@ -92,8 +92,8 @@ export default function Dashboard() {
 
   // User Auth Profile State
   const [user, setUser] = useState<{ name: string; email: string } | null>(null);
-  const [loginName, setLoginName] = useState("PODUGU MUKESH");
-  const [loginEmail, setLoginEmail] = useState("admin@finsight.com");
+  const [loginName, setLoginName] = useState("");
+  const [loginEmail, setLoginEmail] = useState("");
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   // Report Form States
@@ -154,12 +154,10 @@ export default function Dashboard() {
       try {
         setUser(JSON.parse(storedUser));
       } catch (e) {
-        setUser({ name: "PODUGU MUKESH", email: "admin@finsight.com" });
+        setUser(null);
       }
     } else {
-      const defaultUser = { name: "PODUGU MUKESH", email: "admin@finsight.com" };
-      setUser(defaultUser);
-      localStorage.setItem("user", JSON.stringify(defaultUser));
+      setUser(null);
     }
 
     setMounted(true);
@@ -187,6 +185,15 @@ export default function Dashboard() {
     setUser(null);
     localStorage.removeItem("user");
     setShowProfileMenu(false);
+  };
+
+  const getApiUrl = () => {
+    let apiBase = process.env.NEXT_PUBLIC_API_URL || "https://finsight-production-3f63.up.railway.app";
+    apiBase = apiBase.trim();
+    if (!apiBase.startsWith("http://") && !apiBase.startsWith("https://")) {
+      apiBase = `https://${apiBase}`;
+    }
+    return apiBase;
   };
 
   // Calculate totals
@@ -394,6 +401,7 @@ export default function Dashboard() {
               <input
                 type="text"
                 required
+                placeholder="e.g. Mukesh Podugu"
                 value={loginName}
                 onChange={(e) => setLoginName(e.target.value)}
                 className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-sm"
@@ -405,6 +413,7 @@ export default function Dashboard() {
               <input
                 type="email"
                 required
+                placeholder="e.g. admin@finsight.com"
                 value={loginEmail}
                 onChange={(e) => setLoginEmail(e.target.value)}
                 className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-sm"
@@ -416,6 +425,24 @@ export default function Dashboard() {
               className="w-full py-3 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold text-sm shadow-lg shadow-indigo-500/20 transition-all duration-200 flex items-center justify-center gap-2"
             >
               Sign In
+            </button>
+
+            <div className="relative flex py-2 items-center">
+              <div className="flex-grow border-t border-slate-200 dark:border-slate-800"></div>
+              <span className="flex-shrink mx-4 text-[10px] text-slate-400 uppercase font-bold">Or Demo</span>
+              <div className="flex-grow border-t border-slate-200 dark:border-slate-800"></div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                const defaultUser = { name: "PODUGU MUKESH", email: "admin@finsight.com" };
+                setUser(defaultUser);
+                localStorage.setItem("user", JSON.stringify(defaultUser));
+              }}
+              className="w-full py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-900/40 text-slate-600 dark:text-slate-400 font-bold text-xs transition-all duration-200"
+            >
+              Quick Demo Sign In
             </button>
           </form>
         </div>
@@ -1149,7 +1176,7 @@ export default function Dashboard() {
                       </select>
                       <button
                         onClick={() => {
-                          const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://finsight-production-3f63.up.railway.app";
+                          const apiBase = getApiUrl();
                           window.open(`${apiBase}/api/v1/reports/export/pdf?month=${pdfMonth}&year=2026`, '_blank');
                         }}
                         className="px-4 py-2 text-xs rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold flex items-center justify-center gap-1.5 shadow-md"
@@ -1182,7 +1209,7 @@ export default function Dashboard() {
                       </select>
                       <button
                         onClick={() => {
-                          const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://finsight-production-3f63.up.railway.app";
+                          const apiBase = getApiUrl();
                           window.open(`${apiBase}/api/v1/reports/export/excel?year=${excelYear}`, '_blank');
                         }}
                         className="px-4 py-2 text-xs rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold flex items-center justify-center gap-1.5 shadow-md"

@@ -3,11 +3,24 @@ package com.finsight.service;
 import com.finsight.entity.Transaction;
 import com.finsight.entity.User;
 import com.finsight.repository.TransactionRepository;
-import com.lowagie.text.*;
+import com.lowagie.text.Document;
+import com.lowagie.text.DocumentException;
+import com.lowagie.text.Element;
+import com.lowagie.text.FontFactory;
+import com.lowagie.text.PageSize;
+import com.lowagie.text.Paragraph;
+import com.lowagie.text.Phrase;
 import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
-import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.CreationHelper;
+import org.apache.poi.ss.usermodel.FillPatternType;
+import org.apache.poi.ss.usermodel.HorizontalAlignment;
+import org.apache.poi.ss.usermodel.IndexedColors;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
 
@@ -53,10 +66,10 @@ public class ReportService {
             Color incomeColor = new Color(16, 185, 129);
             Color expenseColor = new Color(239, 68, 68);
             
-            Font titleFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 22, primaryColor);
-            Font sectionFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 14, Color.BLACK);
-            Font boldFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10, Color.BLACK);
-            Font normalFont = FontFactory.getFont(FontFactory.HELVETICA, 10, Color.BLACK);
+            com.lowagie.text.Font titleFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 22, primaryColor);
+            com.lowagie.text.Font sectionFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 14, Color.BLACK);
+            com.lowagie.text.Font boldFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10, Color.BLACK);
+            com.lowagie.text.Font normalFont = FontFactory.getFont(FontFactory.HELVETICA, 10, Color.BLACK);
 
             Paragraph title = new Paragraph("FinSight Monthly Financial Report", titleFont);
             title.setAlignment(Element.ALIGN_CENTER);
@@ -177,7 +190,7 @@ public class ReportService {
             headerCellStyle.setAlignment(HorizontalAlignment.CENTER);
 
             String[] columns = {"ID", "Date", "Category", "Type", "Amount (₹)", "Description", "Recurring"};
-            Row headerRow = sheet.createRow(0);
+            org.apache.poi.ss.usermodel.Row headerRow = sheet.createRow(0);
             for (int i = 0; i < columns.length; i++) {
                 Cell cell = headerRow.createCell(i);
                 cell.setCellValue(columns[i]);
@@ -205,7 +218,7 @@ public class ReportService {
             BigDecimal totalExpense = BigDecimal.ZERO;
 
             for (Transaction t : transactions) {
-                Row row = sheet.createRow(rowIdx++);
+                org.apache.poi.ss.usermodel.Row row = sheet.createRow(rowIdx++);
                 row.createCell(0).setCellValue(t.getId());
 
                 Cell dateCell = row.createCell(1);
@@ -229,7 +242,7 @@ public class ReportService {
             }
 
             rowIdx++;
-            Row summaryTitleRow = sheet.createRow(rowIdx++);
+            org.apache.poi.ss.usermodel.Row summaryTitleRow = sheet.createRow(rowIdx++);
             Cell titleCell = summaryTitleRow.createCell(3);
             titleCell.setCellValue("ANNUAL SUMMARY");
             
@@ -239,23 +252,23 @@ public class ReportService {
             boldStyle.setFont(bFont);
             titleCell.setCellStyle(boldStyle);
 
-            Row summaryRow1 = sheet.createRow(rowIdx++);
+            org.apache.poi.ss.usermodel.Row summaryRow1 = sheet.createRow(rowIdx++);
             summaryRow1.createCell(3).setCellValue("Total Income:");
             summaryRow1.createCell(4).setCellValue(totalIncome.doubleValue());
             summaryRow1.getCell(3).setCellStyle(boldStyle);
 
-            Row summaryRow2 = sheet.createRow(rowIdx++);
+            org.apache.poi.ss.usermodel.Row summaryRow2 = sheet.createRow(rowIdx++);
             summaryRow2.createCell(3).setCellValue("Total Expense:");
             summaryRow2.createCell(4).setCellValue(totalExpense.doubleValue());
             summaryRow2.getCell(3).setCellStyle(boldStyle);
 
-            Row summaryRow3 = sheet.createRow(rowIdx++);
+            org.apache.poi.ss.usermodel.Row summaryRow3 = sheet.createRow(rowIdx++);
             summaryRow3.createCell(3).setCellValue("Net Savings:");
             summaryRow3.createCell(4).setCellValue(totalIncome.subtract(totalExpense).doubleValue());
             summaryRow3.getCell(3).setCellStyle(boldStyle);
 
             rowIdx += 2;
-            Row developerRow = sheet.createRow(rowIdx);
+            org.apache.poi.ss.usermodel.Row developerRow = sheet.createRow(rowIdx);
             developerRow.createCell(0).setCellValue("Report Developer: PODUGU MUKESH | Srikakulam | mukeshpodugu123@gmail.com | 8143999463");
 
             for (int i = 0; i < columns.length; i++) {

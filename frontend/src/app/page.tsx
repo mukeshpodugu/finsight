@@ -90,6 +90,16 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [darkMode, setDarkMode] = useState(true);
 
+  // User Auth Profile State
+  const [user, setUser] = useState<{ name: string; email: string } | null>(null);
+  const [loginName, setLoginName] = useState("PODUGU MUKESH");
+  const [loginEmail, setLoginEmail] = useState("admin@finsight.com");
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+
+  // Report Form States
+  const [pdfMonth, setPdfMonth] = useState("6");
+  const [excelYear, setExcelYear] = useState("2026");
+
   // Financial States
   const [transactions, setTransactions] = useState(SEED_TRANSACTIONS);
   const [goals, setGoals] = useState(SEED_GOALS);
@@ -121,9 +131,63 @@ export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState("ALL");
 
+  // Initials extractor
+  const getInitials = (name: string) => {
+    if (!name) return "U";
+    const parts = name.trim().split(/\s+/);
+    if (parts.length === 1) return parts[0][0].toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  };
+
   useEffect(() => {
+    // Theme setup from local storage
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme) {
+      setDarkMode(savedTheme === "dark");
+    } else {
+      setDarkMode(true);
+    }
+
+    // User session setup from local storage
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (e) {
+        setUser({ name: "PODUGU MUKESH", email: "admin@finsight.com" });
+      }
+    } else {
+      const defaultUser = { name: "PODUGU MUKESH", email: "admin@finsight.com" };
+      setUser(defaultUser);
+      localStorage.setItem("user", JSON.stringify(defaultUser));
+    }
+
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+    }
+  }, [darkMode]);
+
+  const handleLoginSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!loginName || !loginEmail) return;
+    const newUser = { name: loginName, email: loginEmail };
+    setUser(newUser);
+    localStorage.setItem("user", JSON.stringify(newUser));
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+    localStorage.removeItem("user");
+    setShowProfileMenu(false);
+  };
 
   // Calculate totals
   const totalIncome = transactions
@@ -308,6 +372,57 @@ export default function Dashboard() {
 
   if (!mounted) return null;
 
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-[#0b0c10] flex items-center justify-center p-4 transition-colors duration-300">
+        <div className="glass max-w-md w-full rounded-2xl p-8 border border-slate-200 dark:border-slate-800/80 shadow-2xl space-y-6">
+          <div className="text-center space-y-2">
+            <div className="bg-gradient-to-tr from-violet-600 to-indigo-600 p-4 rounded-2xl shadow-xl inline-block">
+              <Sparkles className="h-8 w-8 text-white animate-pulse" />
+            </div>
+            <h2 className="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-violet-500 via-indigo-500 to-cyan-500 bg-clip-text text-transparent">
+              Welcome to FinSight
+            </h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              AI-Powered Personal Finance Management Platform
+            </p>
+          </div>
+
+          <form onSubmit={handleLoginSubmit} className="space-y-4">
+            <div className="space-y-1">
+              <label className="text-[11px] font-bold text-slate-400 uppercase">Full Name</label>
+              <input
+                type="text"
+                required
+                value={loginName}
+                onChange={(e) => setLoginName(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-sm"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[11px] font-bold text-slate-400 uppercase">Email Address</label>
+              <input
+                type="email"
+                required
+                value={loginEmail}
+                onChange={(e) => setLoginEmail(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-sm"
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="w-full py-3 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold text-sm shadow-lg shadow-indigo-500/20 transition-all duration-200 flex items-center justify-center gap-2"
+            >
+              Sign In
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={darkMode ? "dark" : ""}>
       <div className="min-h-screen bg-slate-50 dark:bg-[#0b0c10] text-slate-800 dark:text-slate-100 flex flex-col transition-colors duration-300">
@@ -338,14 +453,35 @@ export default function Dashboard() {
             </button>
 
             {/* Profile Dropdown Context */}
-            <div className="flex items-center space-x-3 border-l border-slate-200 dark:border-slate-800 pl-4">
-              <div className="h-9 w-9 rounded-xl bg-gradient-to-tr from-violet-500 to-indigo-500 flex items-center justify-center font-bold text-white shadow-md">
-                PM
-              </div>
-              <div className="hidden md:block text-left">
-                <p className="text-xs font-bold leading-tight">PODUGU MUKESH</p>
-                <p className="text-[10px] text-slate-500 dark:text-slate-400">admin@finsight.com</p>
-              </div>
+            <div className="relative">
+              <button
+                onClick={() => setShowProfileMenu(!showProfileMenu)}
+                className="flex items-center space-x-3 border-l border-slate-200 dark:border-slate-800 pl-4 focus:outline-none hover:opacity-90 transition-opacity"
+              >
+                <div className="h-9 w-9 rounded-xl bg-gradient-to-tr from-violet-500 to-indigo-500 flex items-center justify-center font-bold text-white shadow-md">
+                  {getInitials(user?.name || "")}
+                </div>
+                <div className="hidden md:block text-left">
+                  <p className="text-xs font-bold leading-tight">{user?.name}</p>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400">{user?.email}</p>
+                </div>
+              </button>
+
+              {showProfileMenu && (
+                <div className="absolute right-0 mt-2 w-48 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl py-2 z-50">
+                  <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-800/80">
+                    <p className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">{user?.name}</p>
+                    <p className="text-[10px] text-slate-500 truncate">{user?.email}</p>
+                  </div>
+                  <button
+                    onClick={handleLogout}
+                    className="w-full text-left px-4 py-2 text-xs text-red-500 hover:bg-slate-100 dark:hover:bg-slate-800/60 font-semibold flex items-center space-x-2 transition-colors"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    <span>Sign Out</span>
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </header>
@@ -999,12 +1135,23 @@ export default function Dashboard() {
                     </div>
                     
                     <div className="flex gap-2">
-                      <select className="flex-1 px-3 py-1.5 text-xs rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:outline-none">
+                      <select 
+                        value={pdfMonth}
+                        onChange={(e) => setPdfMonth(e.target.value)}
+                        className="flex-1 px-3 py-1.5 text-xs rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:outline-none"
+                      >
                         <option value="6">June 2026</option>
                         <option value="5">May 2026</option>
+                        <option value="4">April 2026</option>
+                        <option value="3">March 2026</option>
+                        <option value="2">February 2026</option>
+                        <option value="1">January 2026</option>
                       </select>
                       <button
-                        onClick={() => window.open(`http://localhost:8080/api/v1/reports/export/pdf?month=6&year=2026`, '_blank')}
+                        onClick={() => {
+                          const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+                          window.open(`${apiBase}/api/v1/reports/export/pdf?month=${pdfMonth}&year=2026`, '_blank');
+                        }}
                         className="px-4 py-2 text-xs rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold flex items-center justify-center gap-1.5 shadow-md"
                       >
                         <Download className="h-4 w-4" /> Download PDF
@@ -1025,11 +1172,19 @@ export default function Dashboard() {
                     </div>
                     
                     <div className="flex gap-2">
-                      <select className="flex-1 px-3 py-1.5 text-xs rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:outline-none">
+                      <select 
+                        value={excelYear}
+                        onChange={(e) => setExcelYear(e.target.value)}
+                        className="flex-1 px-3 py-1.5 text-xs rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:outline-none"
+                      >
                         <option value="2026">Year 2026</option>
+                        <option value="2025">Year 2025</option>
                       </select>
                       <button
-                        onClick={() => window.open(`http://localhost:8080/api/v1/reports/export/excel?year=2026`, '_blank')}
+                        onClick={() => {
+                          const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+                          window.open(`${apiBase}/api/v1/reports/export/excel?year=${excelYear}`, '_blank');
+                        }}
                         className="px-4 py-2 text-xs rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold flex items-center justify-center gap-1.5 shadow-md"
                       >
                         <Download className="h-4 w-4" /> Download Excel

@@ -15,6 +15,13 @@ Designed with a modern, micro-cache architecture and integrated with the **Gemin
 
 ---
 
+## 🌐 Live Cloud Deployments
+*   **Web Portal Frontend (Vercel):** [https://finsight-eight-sigma.vercel.app/](https://finsight-eight-sigma.vercel.app/)
+*   **REST API Backend (Railway):** [https://finsight-production-3f63.up.railway.app/](https://finsight-production-3f63.up.railway.app/)
+*   **Interactive API Docs (Swagger):** [https://finsight-production-3f63.up.railway.app/swagger-ui/index.html](https://finsight-production-3f63.up.railway.app/swagger-ui/index.html)
+
+---
+
 ## 🚀 Resume-Ready Project Description
 **FinSight — AI-Powered Smart Personal Finance Tracker (Full-Stack Platform)**
 *   **System Architecture:** Developed a personal finance tracker using a secure, stateless backend (**Java 21, Spring Boot, Spring Security, JWT**) and a dynamic frontend (**React/Next.js 14, Tailwind CSS, Recharts**).

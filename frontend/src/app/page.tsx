@@ -101,9 +101,9 @@ export default function Dashboard() {
   const [excelYear, setExcelYear] = useState("2026");
 
   // Financial States
-  const [transactions, setTransactions] = useState(SEED_TRANSACTIONS);
-  const [goals, setGoals] = useState(SEED_GOALS);
-  const [budgets, setBudgets] = useState(SEED_BUDGETS);
+  const [transactions, setTransactions] = useState<any[]>([]);
+  const [goals, setGoals] = useState<any[]>([]);
+  const [budgets, setBudgets] = useState<any[]>([]);
   const [notifications, setNotifications] = useState([
     { id: 1, title: "Budget Warning: Shopping", message: "You have utilized 85% of your Shopping budget limit.", type: "BUDGET_ALERT", time: "2 hours ago" },
     { id: 2, title: "Scheduled Payment Processed", message: "Your recurring bill for Rent of ₹12,000 has been recorded.", type: "BILL_REMINDER", time: "1 day ago" }
@@ -163,6 +163,49 @@ export default function Dashboard() {
     setMounted(true);
   }, []);
 
+  // Load user data on login or session change
+  useEffect(() => {
+    if (!user) {
+      setTransactions([]);
+      setGoals([]);
+      setBudgets([]);
+      return;
+    }
+
+    // Load transactions
+    const txKey = `finsight_transactions_${user.email}`;
+    const storedTxs = localStorage.getItem(txKey);
+    if (storedTxs) {
+      setTransactions(JSON.parse(storedTxs));
+    } else {
+      const initialTxs = user.email === "admin@finsight.com" ? SEED_TRANSACTIONS : [];
+      setTransactions(initialTxs);
+      localStorage.setItem(txKey, JSON.stringify(initialTxs));
+    }
+
+    // Load goals
+    const goalsKey = `finsight_goals_${user.email}`;
+    const storedGoals = localStorage.getItem(goalsKey);
+    if (storedGoals) {
+      setGoals(JSON.parse(storedGoals));
+    } else {
+      const initialGoals = user.email === "admin@finsight.com" ? SEED_GOALS : [];
+      setGoals(initialGoals);
+      localStorage.setItem(goalsKey, JSON.stringify(initialGoals));
+    }
+
+    // Load budgets
+    const budgetsKey = `finsight_budgets_${user.email}`;
+    const storedBudgets = localStorage.getItem(budgetsKey);
+    if (storedBudgets) {
+      setBudgets(JSON.parse(storedBudgets));
+    } else {
+      const initialBudgets = user.email === "admin@finsight.com" ? SEED_BUDGETS : [];
+      setBudgets(initialBudgets);
+      localStorage.setItem(budgetsKey, JSON.stringify(initialBudgets));
+    }
+  }, [user]);
+
   useEffect(() => {
     if (darkMode) {
       document.documentElement.classList.add("dark");
@@ -196,6 +239,27 @@ export default function Dashboard() {
     return apiBase;
   };
 
+  const updateTransactions = (newTxs: any[]) => {
+    setTransactions(newTxs);
+    if (user) {
+      localStorage.setItem(`finsight_transactions_${user.email}`, JSON.stringify(newTxs));
+    }
+  };
+
+  const updateGoals = (newGoals: any[]) => {
+    setGoals(newGoals);
+    if (user) {
+      localStorage.setItem(`finsight_goals_${user.email}`, JSON.stringify(newGoals));
+    }
+  };
+
+  const updateBudgets = (newBudgets: any[]) => {
+    setBudgets(newBudgets);
+    if (user) {
+      localStorage.setItem(`finsight_budgets_${user.email}`, JSON.stringify(newBudgets));
+    }
+  };
+
   // Calculate totals
   const totalIncome = transactions
     .filter(t => t.type === "INCOME")
@@ -227,11 +291,12 @@ export default function Dashboard() {
       description: txDesc || `${txCategory} item`
     };
 
-    setTransactions([newTx, ...transactions]);
+    const updatedTxs = [newTx, ...transactions];
+    updateTransactions(updatedTxs);
 
     // If expense, check budget bounds
     if (txType === "EXPENSE") {
-      setBudgets(budgets.map(b => {
+      const updatedBudgets = budgets.map(b => {
         if (b.category === txCategory) {
           const newSpent = b.spent + parseFloat(txAmount);
           if (newSpent > b.limit) {
@@ -249,7 +314,8 @@ export default function Dashboard() {
           return { ...b, spent: newSpent };
         }
         return b;
-      }));
+      });
+      updateBudgets(updatedBudgets);
     }
 
     // Reset fields
@@ -271,7 +337,7 @@ export default function Dashboard() {
       status: "IN_PROGRESS"
     };
 
-    setGoals([...goals, newGoal]);
+    updateGoals([...goals, newGoal]);
     setGoalName("");
     setGoalTarget("");
     setGoalDeadline("");
@@ -286,9 +352,9 @@ export default function Dashboard() {
     const existing = budgets.find(b => b.category === budgetCategory);
 
     if (existing) {
-      setBudgets(budgets.map(b => b.category === budgetCategory ? { ...b, limit: limitVal } : b));
+      updateBudgets(budgets.map(b => b.category === budgetCategory ? { ...b, limit: limitVal } : b));
     } else {
-      setBudgets([...budgets, { category: budgetCategory, limit: limitVal, spent: 0 }]);
+      updateBudgets([...budgets, { category: budgetCategory, limit: limitVal, spent: 0 }]);
     }
     setBudgetLimit("");
   };
@@ -299,7 +365,7 @@ export default function Dashboard() {
     if (!contributeAmount || selectedGoalId === null) return;
 
     const contVal = parseFloat(contributeAmount);
-    setGoals(goals.map(g => {
+    let updatedGoals = goals.map(g => {
       if (g.id === selectedGoalId) {
         const updatedAmt = g.currentAmount + contVal;
         const reached = updatedAmt >= g.targetAmount;
@@ -322,7 +388,8 @@ export default function Dashboard() {
         };
       }
       return g;
-    }));
+    });
+    updateGoals(updatedGoals);
 
     // Deduct transaction list
     const selectedGoal = goals.find(g => g.id === selectedGoalId);
@@ -334,7 +401,7 @@ export default function Dashboard() {
       transactionDate: new Date().toISOString().split('T')[0],
       description: `Savings goal deposit: ${selectedGoal?.name}`
     };
-    setTransactions([newTx, ...transactions]);
+    updateTransactions([newTx, ...transactions]);
 
     setContributeAmount("");
     setSelectedGoalId(null);
@@ -342,7 +409,7 @@ export default function Dashboard() {
 
   // Delete transaction
   const handleDeleteTx = (id: number) => {
-    setTransactions(transactions.filter(t => t.id !== id));
+    updateTransactions(transactions.filter(t => t.id !== id));
   };
 
   // Chart data computation

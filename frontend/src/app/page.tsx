@@ -1149,7 +1149,7 @@ export default function Dashboard() {
                       </select>
                       <button
                         onClick={() => {
-                          const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+                          const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://finsight-production-3f63.up.railway.app";
                           window.open(`${apiBase}/api/v1/reports/export/pdf?month=${pdfMonth}&year=2026`, '_blank');
                         }}
                         className="px-4 py-2 text-xs rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold flex items-center justify-center gap-1.5 shadow-md"
@@ -1182,7 +1182,7 @@ export default function Dashboard() {
                       </select>
                       <button
                         onClick={() => {
-                          const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+                          const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://finsight-production-3f63.up.railway.app";
                           window.open(`${apiBase}/api/v1/reports/export/excel?year=${excelYear}`, '_blank');
                         }}
                         className="px-4 py-2 text-xs rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold flex items-center justify-center gap-1.5 shadow-md"

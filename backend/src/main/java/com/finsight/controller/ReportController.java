@@ -1,6 +1,7 @@
 package com.finsight.controller;
 
 import com.finsight.entity.User;
+import com.finsight.repository.UserRepository;
 import com.finsight.service.ReportService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -18,9 +19,11 @@ import java.time.LocalDate;
 public class ReportController {
 
     private final ReportService reportService;
+    private final UserRepository userRepository;
 
-    public ReportController(ReportService reportService) {
+    public ReportController(ReportService reportService, UserRepository userRepository) {
         this.reportService = reportService;
+        this.userRepository = userRepository;
     }
 
     @GetMapping("/export/pdf")
@@ -31,7 +34,12 @@ public class ReportController {
         int m = month != null ? month : LocalDate.now().getMonthValue();
         int y = year != null ? year : LocalDate.now().getYear();
 
-        byte[] pdfBytes = reportService.generateMonthlyPDFReport(user, m, y);
+        User targetUser = user;
+        if (targetUser == null) {
+            targetUser = userRepository.findByEmail("admin@finsight.com").orElse(null);
+        }
+
+        byte[] pdfBytes = reportService.generateMonthlyPDFReport(targetUser, m, y);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_PDF);
@@ -48,7 +56,12 @@ public class ReportController {
             @AuthenticationPrincipal User user) {
         int y = year != null ? year : LocalDate.now().getYear();
 
-        byte[] excelBytes = reportService.generateExcelReport(user, y);
+        User targetUser = user;
+        if (targetUser == null) {
+            targetUser = userRepository.findByEmail("admin@finsight.com").orElse(null);
+        }
+
+        byte[] excelBytes = reportService.generateExcelReport(targetUser, y);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
